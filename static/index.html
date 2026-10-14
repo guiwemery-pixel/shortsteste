@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CorteCerto — cortes do YouTube em Shorts</title>
+  <meta name="description" content="Cole o link de um vídeo do YouTube e receba os melhores momentos em cortes verticais de até 1min30." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">✂</span>
+      <span>CorteCerto</span>
+    </div>
+    <span id="mode-badge" class="mode-badge" hidden></span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Transforme vídeos longos em <span class="accent">Shorts</span> prontos para postar</h1>
+      <p class="lead">
+        Cole o link de um vídeo do YouTube. A IA encontra os melhores momentos e entrega
+        cortes verticais de até <strong>1min30</strong>, com legenda.
+      </p>
+
+      <form id="job-form" class="card form" novalidate>
+        <div class="url-row">
+          <input id="url" name="url" type="url" inputmode="url" autocomplete="off" required
+                 placeholder="https://www.youtube.com/watch?v=..." aria-label="Link do vídeo do YouTube" />
+          <button id="submit" type="submit" class="primary">Gerar cortes</button>
+        </div>
+
+        <div class="options">
+          <label class="option">
+            <span>Quantidade de cortes</span>
+            <select id="max_clips" name="max_clips">
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option selected>5</option><option>6</option><option>8</option><option>10</option>
+            </select>
+          </label>
+
+          <label class="option">
+            <span>Duração máxima: <output id="max_duration_label">60s</output></span>
+            <input id="max_duration" name="max_duration" type="range" min="15" max="90" step="5" value="60" />
+          </label>
+
+          <fieldset class="option wide">
+            <legend>Formato</legend>
+            <div class="segmented">
+              <label><input type="radio" name="format" value="vertical_blur" checked /><span>Vertical 9:16</span></label>
+              <label><input type="radio" name="format" value="vertical_crop" /><span>Vertical recortado</span></label>
+              <label><input type="radio" name="format" value="split" /><span>Tela dividida</span></label>
+              <label><input type="radio" name="format" value="original" /><span>Original</span></label>
+            </div>
+          </fieldset>
+        </div>
+
+        <fieldset id="background-picker" class="background-picker" hidden>
+          <legend>Vídeo de baixo (para prender a atenção)</legend>
+          <div id="backgrounds" class="backgrounds" role="radiogroup"></div>
+          <label class="upload">
+            <input id="background-file" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mp4,.mov,.webm,.mkv" />
+            <span>＋ Enviar meu vídeo de fundo</span>
+          </label>
+          <p id="upload-status" class="muted small" hidden></p>
+          <p class="muted small">Use vídeos seus ou livres de direitos (gameplay gravado por você, banco de vídeos gratuito etc.).</p>
+        </fieldset>
+
+        <div class="switches">
+          <label class="switch">
+            <input id="captions" name="captions" type="checkbox" checked />
+            <span class="track" aria-hidden="true"></span>
+            <span>Legendas no vídeo</span>
+          </label>
+          <label class="switch">
+            <input id="remove_silence" name="remove_silence" type="checkbox" />
+            <span class="track" aria-hidden="true"></span>
+            <span>Cortar silêncios</span>
+          </label>
+          <label class="switch">
+            <input id="mirror" name="mirror" type="checkbox" />
+            <span class="track" aria-hidden="true"></span>
+            <span>Espelhar vídeo</span>
+          </label>
+        </div>
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <section id="status" class="card status" hidden aria-live="polite">
+      <div class="video-info">
+        <img id="video-thumb" alt="" hidden />
+        <div>
+          <h2 id="video-title">Processando…</h2>
+          <p id="video-meta" class="muted"></p>
+        </div>
+      </div>
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+        <div id="progress-bar" class="bar"></div>
+      </div>
+      <p id="status-message" class="status-message"></p>
+      <ol id="steps" class="steps">
+        <li data-stage="metadata">Lendo o vídeo</li>
+        <li data-stage="transcript">Transcrição</li>
+        <li data-stage="download">Download</li>
+        <li data-stage="highlights">Melhores momentos</li>
+        <li data-stage="render">Gerando cortes</li>
+      </ol>
+      <ul id="warnings" class="warnings"></ul>
+      <p id="status-error" class="form-error" role="alert" hidden></p>
+    </section>
+
+    <section id="results" class="results" hidden>
+      <div class="results-head">
+        <h2>Seus cortes</h2>
+        <p id="results-meta" class="muted"></p>
+      </div>
+      <div id="clips" class="clips"></div>
+    </section>
+
+    <section class="how">
+      <h2>Como funciona</h2>
+      <ol>
+        <li><strong>Cole o link</strong> de qualquer vídeo público do YouTube.</li>
+        <li><strong>A IA assiste por você:</strong> lê a transcrição e usa os trechos mais revistos pelo público.</li>
+        <li><strong>Receba os cortes</strong> em 9:16, com legenda e de até 1min30, prontos para Shorts, Reels e TikTok.</li>
+        <li><strong>Edite automaticamente:</strong> corte os silêncios, espelhe a imagem ou use a tela dividida com um vídeo embaixo para prender a atenção.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="footer">
+    Use apenas vídeos seus ou que você tem autorização para reutilizar.
+  </footer>
+
+  <template id="clip-template">
+    <article class="clip">
+      <div class="player">
+        <video controls preload="metadata" playsinline></video>
+        <span class="rank"></span>
+      </div>
+      <div class="clip-body">
+        <div class="clip-top">
+          <h3 class="clip-title"></h3>
+          <span class="score" title="Potencial de viralização"></span>
+        </div>
+        <p class="clip-time muted"></p>
+        <p class="clip-hook"></p>
+        <p class="clip-reason muted"></p>
+        <details class="post-caption" hidden>
+          <summary>Legenda para o post</summary>
+          <p class="post-caption-text"></p>
+        </details>
+        <div class="clip-actions">
+          <a class="button primary download" download>Baixar MP4</a>
+          <a class="button srt" download>Baixar legenda (.srt)</a>
+          <button type="button" class="button copy">Copiar legenda do post</button>
+          <a class="button ghost source" target="_blank" rel="noopener">Ver no YouTube</a>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+fastapi>=0.143,<1
+uvicorn[standard]>=0.54
+anthropic>=1.14,<2
+# yt-dlp precisa ser atualizado com frequência para acompanhar mudanças do YouTube
+yt-dlp[default]>=2026.8.19
+# Runtime JavaScript exigido pelo yt-dlp para o YouTube (binário oficial do Deno via PyPI)
+deno>=2.3
+python-multipart>=0.0.20
