@@ -75,8 +75,9 @@ def canonical_url(url: str) -> str:
 
 def _js_runtimes() -> dict[str, dict]:
     runtimes: dict[str, dict] = {}
-    deno = shutil.which("deno") or str(Path(sys.executable).parent / "deno")
-    if Path(deno).exists():
+    # O Deno instalado pelo pip fica ao lado do Python do venv (deno.exe no Windows).
+    deno = shutil.which("deno") or shutil.which("deno", path=str(Path(sys.executable).parent))
+    if deno:
         runtimes["deno"] = {"path": deno}
     if shutil.which("node"):
         runtimes["node"] = {}

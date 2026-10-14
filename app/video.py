@@ -49,7 +49,9 @@ def ffmpeg_available() -> bool:
 
 
 def _run(args: list[str], cwd: Path | None = None, timeout: int = 1800) -> subprocess.CompletedProcess:
-    proc = subprocess.run(args, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+    proc = subprocess.run(
+        args, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout
+    )
     if proc.returncode != 0:
         tail = "\n".join(proc.stderr.strip().splitlines()[-8:])
         raise VideoError(f"ffmpeg falhou: {tail}")
@@ -61,6 +63,8 @@ def probe(path: Path) -> VideoInfo:
         ["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", str(path)],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=120,
     )
     if proc.returncode != 0:

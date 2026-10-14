@@ -30,7 +30,25 @@ plataforma encontra os melhores momentos e entrega os cortes prontos para Shorts
 > impede o YouTube/TikTok de identificar o conteúdo original. O mesmo vale para os vídeos de fundo:
 > use gravações suas ou de bancos de vídeo livres de direitos.
 
-## Rodando no seu computador
+> **Por que o link do GitHub Pages só mostra este texto?** O GitHub Pages hospeda apenas páginas
+> estáticas. O CorteCerto precisa de um servidor rodando (baixar do YouTube, cortar com ffmpeg,
+> chamar a IA), então ele roda no seu computador ou num servidor, não no GitHub Pages.
+
+## Rodando no Windows (mais fácil)
+
+1. Instale o **Python 3.12**: <https://www.python.org/downloads/>. Na instalação, marque
+   **"Add python.exe to PATH"**.
+2. Instale o **ffmpeg**: abra o PowerShell e rode `winget install Gyan.FFmpeg`. Depois feche e abra
+   o PowerShell de novo.
+3. Baixe o projeto: no GitHub, clique em **Code → Download ZIP** e extraia a pasta (ou use
+   `git clone https://github.com/guiwemery-pixel/shortsteste`).
+4. Dê dois cliques em **`iniciar.bat`** dentro da pasta. Na primeira vez ele instala tudo (leva alguns
+   minutos); depois abre o site em <http://localhost:8000>.
+
+Para ativar a IA, crie um arquivo `.env` na pasta (copie o `.env.example`) e preencha
+`ANTHROPIC_API_KEY`. Para parar o site, feche a janela preta.
+
+## Rodando no Mac ou Linux
 
 Requisitos: **Python 3.11+** e **ffmpeg** (com libass, que já vem nas instalações comuns).
 
@@ -72,7 +90,7 @@ docker run -p 8000:8000 -e ANTHROPIC_API_KEY=sk-ant-... -v cortecerto-data:/data
 | `JOB_TTL_HOURS` | `24` | Depois desse tempo os cortes são apagados. |
 | `DATA_DIR` | `./data` | Onde ficam os cortes e os vídeos de fundo. |
 | `WHISPER_MODEL` | (vazio) | Ex.: `small`. Transcreve vídeos sem legenda (requer `pip install faster-whisper`). |
-| `HOST` / `PORT` | `0.0.0.0` / `8000` | Endereço do servidor. |
+| `HOST` / `PORT` | `127.0.0.1` / `8000` | Endereço do servidor (use `HOST=0.0.0.0` para acessar de outros aparelhos da rede). |
 
 ### "Sign in to confirm you're not a bot"
 

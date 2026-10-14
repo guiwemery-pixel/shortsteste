@@ -12,6 +12,7 @@ COPY app ./app
 COPY static ./static
 
 ENV DATA_DIR=/data \
+    HOST=0.0.0.0 \
     PYTHONUNBUFFERED=1
 VOLUME /data
 EXPOSE 8000

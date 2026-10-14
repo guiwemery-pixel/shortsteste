@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from . import video, whisper
 from .backgrounds import BackgroundError, BackgroundLibrary
-from .config import HARD_MAX_CLIP_SECONDS, MIN_CLIP_SECONDS, Settings
+from .config import HARD_MAX_CLIP_SECONDS, MIN_CLIP_SECONDS, Settings, load_dotenv
 from .jobs import JobStore, Services
 from .youtube import InvalidURL, canonical_url
 
@@ -121,9 +121,10 @@ def run() -> None:
     import uvicorn
 
     logging.basicConfig(level=logging.INFO)
+    load_dotenv(Path.cwd() / ".env")
     uvicorn.run(
         "app.main:create_app",
         factory=True,
-        host=os.environ.get("HOST", "0.0.0.0"),
+        host=os.environ.get("HOST", "127.0.0.1"),
         port=int(os.environ.get("PORT", "8000")),
     )

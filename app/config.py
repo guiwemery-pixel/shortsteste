@@ -11,6 +11,23 @@ HARD_MAX_CLIP_SECONDS = 90
 MIN_CLIP_SECONDS = 15
 
 
+def load_dotenv(path: Path) -> None:
+    """Lê KEY=valor de um arquivo .env sem sobrescrever variáveis já definidas."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip().removeprefix("export ").strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if key and value and key not in os.environ:
+            os.environ[key] = value
+
+
 def _int(name: str, default: int) -> int:
     value = os.environ.get(name)
     if value is None or value.strip() == "":
