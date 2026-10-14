@@ -121,7 +121,9 @@ tests/            testes automatizados (pytest)
 
 ### API
 
-- `POST /api/jobs`: `{url, max_clips (1–10), max_duration (15–90), format, captions, mirror, remove_silence, background}`
+- `POST /api/jobs`: `{url, max_clips (1–20), max_duration (15–90), format, captions, mirror, remove_silence, background}`
+- `GET /api/jobs/{id}/clips/{rank}/download` (`?kind=srt` para a legenda): baixa o corte com o título sugerido como nome do arquivo
+- `GET /api/jobs/{id}/download.zip`: todos os cortes e legendas num `.zip`, nomeados pelos títulos
 - `GET /api/jobs/{id}`: andamento e cortes prontos (MP4, capa, `.srt`, legenda do post)
 - `GET /api/backgrounds`, `POST /api/backgrounds` (envio de arquivo), `DELETE /api/backgrounds/{id}`
 - `GET /api/health`

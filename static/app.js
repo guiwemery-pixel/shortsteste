@@ -195,6 +195,7 @@
   function startPolling(jobId) {
     clearTimeout(pollTimer);
     $("results").hidden = true;
+    $("download-all").hidden = true;
     $("clips").replaceChildren();
     renderedClips.clear();
     $("status").hidden = false;
@@ -261,6 +262,19 @@
       $("results-meta").textContent = parts.filter(Boolean).join(" · ");
       job.clips.forEach((clip) => renderClip(job, clip));
     }
+    const downloadAll = $("download-all");
+    downloadAll.hidden = !(job.download_all_url && job.clips.length > 1);
+    if (job.download_all_url) downloadAll.href = job.download_all_url;
+  }
+
+  async function copyText(button, text, label) {
+    try {
+      await navigator.clipboard.writeText(text);
+      button.textContent = "Copiado!";
+    } catch {
+      button.textContent = "Não foi possível copiar";
+    }
+    setTimeout(() => (button.textContent = label), 1800);
   }
 
   function renderClip(job, clip) {
@@ -297,20 +311,34 @@
     node.querySelector(".clip-hook").textContent = clip.hook || "";
     node.querySelector(".clip-reason").textContent = clip.reason || "";
 
-    const postCaption = clip.caption || [clip.title, clip.hook].filter(Boolean).join("\n");
-    if (clip.caption) {
+    const options = (clip.caption_options || []).length ? clip.caption_options : clip.caption ? [clip.caption] : [];
+    const postCaption = options[0] || [clip.title, clip.hook].filter(Boolean).join("\n");
+    if (options.length) {
       node.querySelector(".post-caption").hidden = false;
-      node.querySelector(".post-caption-text").textContent = clip.caption;
+      node.querySelector(".caption-options").replaceChildren(
+        ...options.map((text) => {
+          const li = document.createElement("li");
+          const p = document.createElement("p");
+          p.textContent = text;
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "button small-button";
+          button.textContent = "Copiar";
+          button.addEventListener("click", () => copyText(button, text, "Copiar"));
+          li.append(p, button);
+          return li;
+        })
+      );
     }
 
     const download = node.querySelector(".download");
-    download.href = clip.url;
-    download.setAttribute("download", `corte-${clip.rank}.mp4`);
+    download.href = clip.download_url;
+    download.setAttribute("download", `${clip.download_name}.mp4`);
 
     const srt = node.querySelector(".srt");
     if (clip.subtitles_url) {
       srt.href = clip.subtitles_url;
-      srt.setAttribute("download", `corte-${clip.rank}.srt`);
+      srt.setAttribute("download", `${clip.download_name}.srt`);
     } else {
       srt.remove();
     }
@@ -323,15 +351,7 @@
     }
 
     const copy = node.querySelector(".copy");
-    copy.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(postCaption);
-        copy.textContent = "Copiado!";
-      } catch {
-        copy.textContent = "Não foi possível copiar";
-      }
-      setTimeout(() => (copy.textContent = "Copiar legenda do post"), 1800);
-    });
+    copy.addEventListener("click", () => copyText(copy, postCaption, "Copiar legenda do post"));
 
     $("clips").appendChild(node);
   }

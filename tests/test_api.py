@@ -1,5 +1,8 @@
+import io
 import shutil
 import time
+import zipfile
+from urllib.parse import unquote
 
 import pytest
 from fastapi.testclient import TestClient
@@ -102,7 +105,10 @@ def test_youtube_error_is_reported(tmp_path):
 def test_full_pipeline_with_claude(tmp_path, sample_video):
     claude = FakeClaude(
         clips=[
-            {"start": 20, "end": 50, "title": "Primeiro", "hook": "Olha isso", "reason": "Bom gancho.", "score": 90},
+            {
+                "start": 20, "end": 50, "title": "Primeiro", "hook": "Olha isso", "reason": "Bom gancho.", "score": 90,
+                "captions": ["Curiosidade #a", "Direta #b", "Pergunta? #c"],
+            },
             {"start": 70, "end": 95, "title": "Segundo", "hook": "E agora", "reason": "Virada.", "score": 75},
         ]
     )
@@ -129,6 +135,27 @@ def test_full_pipeline_with_claude(tmp_path, sample_video):
         media = client.get(clip["url"])
         assert media.status_code == 200 and len(media.content) > 1000
         assert client.get(clip["thumbnail_url"]).status_code == 200
+        # Download com o título sugerido como nome do arquivo.
+        assert clip["download_name"] == clip["title"]
+        download = client.get(clip["download_url"])
+        assert download.status_code == 200 and download.content == media.content
+        disposition = unquote(download.headers["content-disposition"])
+        assert disposition.startswith("attachment") and f"{clip['title']}.mp4" in disposition
+        srt = client.get(clip["subtitles_url"])
+        assert srt.status_code == 200 and f"{clip['title']}.srt" in unquote(srt.headers["content-disposition"])
+
+    bundle = client.get(job["download_all_url"])
+    assert bundle.status_code == 200
+    assert "Vídeo de teste - cortes.zip" in unquote(bundle.headers["content-disposition"])
+    archive = zipfile.ZipFile(io.BytesIO(bundle.content))
+    assert sorted(archive.namelist()) == [
+        "Primeiro.mp4", "Primeiro.srt", "Primeiro.txt", "Segundo.mp4", "Segundo.srt", "Segundo.txt",
+    ]
+    post_text = archive.read("Primeiro.txt").decode("utf-8")
+    assert "Título: Primeiro" in post_text and "Direta #b" in post_text and "3)" in post_text
+    assert job["clips"][0]["caption_options"] == ["Curiosidade #a", "Direta #b", "Pergunta? #c"]
+    assert job["clips"][1]["caption_options"] == []
+    assert client.get(f"/api/jobs/{job['id']}/clips/99/download").status_code == 404
     # O vídeo original é apagado depois dos cortes.
     assert not (tmp_path / "jobs" / job["id"] / "source.mp4").exists()
     # A seleção pediu no máximo 45s.
@@ -193,9 +220,10 @@ def test_upload_background_and_split_pipeline(tmp_path, sample_video):
     done = wait(client, job["id"])
     assert done["status"] == "done", done
     [clip] = done["clips"]
-    assert clip["subtitles_url"].endswith(".srt")
+    assert "kind=srt" in clip["subtitles_url"]
     assert client.get(clip["subtitles_url"]).text.startswith("1\n")
-    assert clip["caption"]  # legenda do post (modo automático)
+    assert clip["caption"] == clip["caption_options"][0]  # legendas do post (modo automático)
+    assert len(clip["caption_options"]) == 3
     assert clip["final_duration"] <= 20
 
     assert client.delete(f"/api/backgrounds/{background['id']}").status_code == 204
@@ -213,3 +241,23 @@ def test_downloaded_source_is_removed_when_job_fails(tmp_path, sample_video):
     done = wait(client, job_id)
     assert done["status"] == "error" and done["error"] == "Falha simulada depois do download."
     assert not list((tmp_path / "jobs" / job_id).glob("source.*"))
+
+
+def test_accepts_up_to_20_clips(tmp_path):
+    def broken(url, settings):
+        raise YouTubeError("sem rede nos testes")
+
+    client = make_client(tmp_path, Services(fetch_metadata=broken))
+    assert client.post("/api/jobs", json={"url": "https://youtu.be/dQw4w9WgXcQ", "max_clips": 20}).status_code == 202
+    assert client.post("/api/jobs", json={"url": "https://youtu.be/dQw4w9WgXcQ", "max_clips": 21}).status_code == 422
+
+
+def test_zip_only_when_done(tmp_path):
+    def slow(url, settings):
+        time.sleep(1)
+        raise YouTubeError("ainda processando")
+
+    client = make_client(tmp_path, Services(fetch_metadata=slow))
+    job = client.post("/api/jobs", json={"url": "https://youtu.be/dQw4w9WgXcQ"}).json()
+    assert job["download_all_url"] is None
+    assert client.get(f"/api/jobs/{job['id']}/download.zip").status_code == 409

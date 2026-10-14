@@ -9,6 +9,8 @@ from pathlib import Path
 # Limite rígido pedido pelo produto: nenhum corte passa de 1min30.
 HARD_MAX_CLIP_SECONDS = 90
 MIN_CLIP_SECONDS = 15
+# Quantidade máxima de cortes por vídeo.
+MAX_CLIPS = 20
 
 
 def load_dotenv(path: Path) -> None:

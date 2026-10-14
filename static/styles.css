@@ -135,7 +135,10 @@ output { color: var(--text); font-weight: 600; }
 
 .post-caption { font-size: 0.85rem; }
 .post-caption summary { cursor: pointer; color: var(--muted); }
-.post-caption-text { white-space: pre-line; margin: 6px 0 0; }
+.caption-options { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 10px; }
+.caption-options li { padding-left: 2px; }
+.caption-options p { white-space: pre-line; margin: 0 0 4px; }
+.small-button { padding: 4px 10px; font-size: 0.8rem; border-radius: 8px; }
 .switch input { position: absolute; opacity: 0; }
 .switch .track {
   width: 42px; height: 24px; border-radius: 999px; background: var(--border); position: relative; transition: background .2s;
@@ -177,7 +180,8 @@ output { color: var(--text); font-weight: 600; }
 .warnings li::before { content: "⚠ "; }
 
 .results { margin-top: 36px; }
-.results-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.results-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.results-head p { margin: 4px 0 0; }
 .results-head h2 { margin: 0; }
 .clips {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin-top: 16px;

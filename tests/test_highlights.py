@@ -105,6 +105,28 @@ def test_select_with_claude_and_prompt_content():
     assert "between 15 and 90 seconds" in prompt
 
 
+def test_three_caption_suggestions_are_kept():
+    client = FakeClaude(
+        clips=[
+            {
+                "start": 120, "end": 175, "title": "Gancho", "hook": "", "reason": "", "score": 90,
+                "captions": ["Curiosidade #a", "  ", "Direta #b", "Pergunta? #c", "Extra #d"],
+            }
+        ]
+    )
+    [clip], _, _ = select(CTX, make_segments(), client)
+    assert clip.caption_options == ["Curiosidade #a", "Direta #b", "Pergunta? #c"]
+    assert clip.caption == "Curiosidade #a"
+    assert "exactly three ready-to-post social media captions" in client.calls[0]["system"]
+
+
+def test_automatic_mode_suggests_three_captions():
+    clips, method, _ = select(CTX, make_segments(), None)
+    assert method == "transcript"
+    assert all(len(c.caption_options) == 3 and c.caption == c.caption_options[0] for c in clips)
+    assert all(c.title in option for c in clips for option in c.caption_options)
+
+
 def test_refusal_falls_back_to_automatic_mode():
     clips, method, warnings = select(CTX, make_segments(), FakeClaude(stop_reason="refusal"))
     assert method == "transcript"

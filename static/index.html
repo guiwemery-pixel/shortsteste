@@ -37,6 +37,7 @@
             <select id="max_clips" name="max_clips">
               <option>1</option><option>2</option><option>3</option><option>4</option>
               <option selected>5</option><option>6</option><option>8</option><option>10</option>
+              <option>12</option><option>15</option><option>20</option>
             </select>
           </label>
 
@@ -113,8 +114,11 @@
 
     <section id="results" class="results" hidden>
       <div class="results-head">
-        <h2>Seus cortes</h2>
-        <p id="results-meta" class="muted"></p>
+        <div>
+          <h2>Seus cortes</h2>
+          <p id="results-meta" class="muted"></p>
+        </div>
+        <a id="download-all" class="button primary" hidden>Baixar todos (.zip)</a>
       </div>
       <div id="clips" class="clips"></div>
     </section>
@@ -149,8 +153,8 @@
         <p class="clip-hook"></p>
         <p class="clip-reason muted"></p>
         <details class="post-caption" hidden>
-          <summary>Legenda para o post</summary>
-          <p class="post-caption-text"></p>
+          <summary>Sugestões de legenda para o post</summary>
+          <ol class="caption-options"></ol>
         </details>
         <div class="clip-actions">
           <a class="button primary download" download>Baixar MP4</a>

@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any, Callable
 
 import anthropic
@@ -30,6 +30,7 @@ class Highlight:
     reason: str
     score: int
     caption: str = ""
+    caption_options: list[str] = field(default_factory=list)
 
     @property
     def duration(self) -> float:
@@ -68,9 +69,9 @@ CLIPS_SCHEMA = {
                     "hook": {"type": "string"},
                     "reason": {"type": "string"},
                     "score": {"type": "integer"},
-                    "caption": {"type": "string"},
+                    "captions": {"type": "array", "items": {"type": "string"}},
                 },
-                "required": ["start", "end", "title", "hook", "reason", "score", "caption"],
+                "required": ["start", "end", "title", "hook", "reason", "score", "captions"],
                 "additionalProperties": False,
             },
         }
@@ -102,8 +103,10 @@ next transcript line (or the video end);
 For each clip return: start and end in seconds; a catchy title of at most 60 characters in \
 the video's language; a one-line hook caption in the video's language; one sentence in \
 Brazilian Portuguese explaining why the moment works; a score from 1 to 100 for its \
-short-form potential; and a ready-to-post social media caption in the video's language (one or \
-two short sentences plus 3 to 5 relevant hashtags). Order clips from best to worst. Return fewer clips than requested when \
+short-form potential; and exactly three ready-to-post social media captions in the video's \
+language, each in a different style: the first sparks curiosity, the second is direct and \
+informative, the third asks the audience a question to drive comments. Each caption has one or \
+two short sentences plus 3 to 5 relevant hashtags. Order clips from best to worst. Return fewer clips than requested when \
 the video does not have enough strong moments."""
 
 
@@ -195,7 +198,7 @@ def select_with_claude(
                     hook=str(item["hook"]).strip(),
                     reason=str(item["reason"]).strip(),
                     score=int(item["score"]),
-                    caption=str(item.get("caption", "")).strip(),
+                    caption_options=[str(c).strip() for c in item.get("captions") or [] if str(c).strip()][:3],
                 )
             )
         except (KeyError, TypeError, ValueError):
@@ -260,7 +263,14 @@ def normalize(
             continue
         fixed.append(
             Highlight(
-                round(start, 2), round(end, 2), h.title, h.hook, h.reason, max(1, min(100, h.score)), h.caption
+                round(start, 2),
+                round(end, 2),
+                h.title,
+                h.hook,
+                h.reason,
+                max(1, min(100, h.score)),
+                h.caption or (h.caption_options[0] if h.caption_options else ""),
+                list(h.caption_options),
             )
         )
 
@@ -299,6 +309,15 @@ def _interest_curve(duration: float, segments: list[Segment], heatmap: list[dict
     else:
         curve = [1.0] * n
     return curve
+
+
+def template_captions(title: str) -> list[str]:
+    """Legendas de post prontas para o modo automático (sem IA), em três estilos."""
+    return [
+        f"Assista até o final 👀\n{title}\n\n#shorts #cortes #reels",
+        f"{title}\n\n#shorts #cortes #dicas",
+        f"{title}\nO que você acha disso? Comenta aqui 👇\n\n#shorts #cortes #tiktok",
+    ]
 
 
 def heuristic_highlights(
@@ -347,7 +366,7 @@ def heuristic_highlights(
                     else "Trecho distribuído ao longo do vídeo."
                 ),
                 score=max(1, int(round(100 * value / best))),
-                caption=f"{title}\n\n#shorts #cortes",
+                caption_options=template_captions(title),
             )
         )
         if len(picked) == count:
