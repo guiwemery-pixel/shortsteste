@@ -10,6 +10,19 @@ $zip = Join-Path $env:TEMP "cortecerto-atualizacao.zip"
 $tmp = Join-Path $env:TEMP "cortecerto-atualizacao"
 
 try {
+    # Fecha o CorteCerto que estiver aberto, para a versao nova entrar no lugar.
+    $aberto = $false
+    try {
+        Invoke-WebRequest "http://127.0.0.1:8000/api/health" -UseBasicParsing -TimeoutSec 2 | Out-Null
+        $aberto = $true
+    } catch { }
+    if ($aberto) {
+        Write-Host "Fechando o CorteCerto que estava aberto..."
+        Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue |
+            ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds 2
+    }
+
     Write-Host "Baixando a versao mais recente do CorteCerto..."
     Invoke-WebRequest $url -OutFile $zip -UseBasicParsing
     if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }

@@ -3,6 +3,15 @@ chcp 65001 >nul
 title CorteCerto
 cd /d "%~dp0"
 
+rem Se o CorteCerto ja estiver rodando (em outra janela), so abre o navegador.
+powershell -NoProfile -Command "try { Invoke-WebRequest http://127.0.0.1:8000/api/health -UseBasicParsing -TimeoutSec 2 | Out-Null; exit 0 } catch { exit 1 }" >nul 2>nul
+if not errorlevel 1 (
+  echo O CorteCerto ja esta aberto em outra janela. Abrindo o navegador...
+  start "" http://localhost:8000
+  timeout /t 3 /nobreak >nul
+  exit /b 0
+)
+
 where ffmpeg >nul 2>nul
 if errorlevel 1 (
   echo.

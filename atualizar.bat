@@ -4,7 +4,7 @@ title CorteCerto - atualizar
 cd /d "%~dp0"
 
 echo.
-echo Feche a janela do CorteCerto se ela estiver aberta.
+echo Vamos atualizar o CorteCerto. Se ele estiver aberto, sera fechado e aberto de novo.
 echo Seus cortes, videos de fundo e configuracoes serao mantidos.
 echo.
 pause
