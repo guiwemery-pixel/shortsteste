@@ -48,6 +48,10 @@ plataforma encontra os melhores momentos e entrega os cortes prontos para Shorts
 Para ativar a IA, crie um arquivo `.env` na pasta (copie o `.env.example`) e preencha
 `ANTHROPIC_API_KEY`. Para parar o site, feche a janela preta.
 
+**Para atualizar** depois de mudanças no projeto: feche a janela do site e dê dois cliques em
+**`atualizar.bat`**. Ele baixa a versão mais recente, mantém seus cortes, vídeos de fundo e o `.env`,
+e abre o site de novo.
+
 ## Rodando no Mac ou Linux
 
 Requisitos: **Python 3.11+** e **ffmpeg** (com libass, que já vem nas instalações comuns).
